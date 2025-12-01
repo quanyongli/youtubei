@@ -114,14 +114,17 @@ export class Client {
 
 		const data = { response: nextResponse.data, playerResponse: playerResponse.data };
 
-		if (
-			!data.response?.contents?.twoColumnWatchNextResults.results.results.contents ||
-			data.playerResponse.playabilityStatus.status === "ERROR"
-		) {
+		// 更加健壮的校验，兼容不同地区 / 实验版本返回的结构
+		const contents =
+			data.response?.contents?.twoColumnWatchNextResults?.results?.results?.contents;
+		const playabilityStatus = data.playerResponse?.playabilityStatus;
+		const hasVideoDetails = !!data.playerResponse?.videoDetails?.videoId;
+
+		if (!contents || !playabilityStatus || playabilityStatus.status === "ERROR" || !hasVideoDetails) {
 			return undefined as T;
 		}
 
-		return (!data.playerResponse.playabilityStatus.liveStreamability
+		return (!playabilityStatus.liveStreamability
 			? new Video({ client: this }).load(data)
 			: new LiveVideo({ client: this }).load(data)) as T;
 	}
