@@ -149,13 +149,41 @@ export class SearchResult<T extends SearchType | undefined = "all"> extends Cont
 
 		this.estimatedResults = +response.data.estimatedResults;
 
-		if (this.estimatedResults > 0) {
+		// 打印原始响应数据用于调试
+		console.log("[SearchResult] 原始响应数据:");
+		console.log(`  estimatedResults 原始值: ${response.data.estimatedResults}`);
+		console.log(`  estimatedResults 类型: ${typeof response.data.estimatedResults}`);
+		console.log(`  解析后的 estimatedResults: ${this.estimatedResults}`);
+		console.log(`  response.data 的键: ${Object.keys(response.data || {}).join(", ")}`);
+
+		// 打印部分响应数据（避免输出过大）
+		try {
+			const dataStr = JSON.stringify(response.data, null, 2);
+			if (dataStr.length > 2000) {
+				console.log(`  response.data (前2000字符): ${dataStr.substring(0, 2000)}...`);
+			} else {
+				console.log(`  response.data: ${dataStr}`);
+			}
+		} catch (stringifyError) {
+			console.log(`  无法序列化 response.data: ${(stringifyError as Error).message}`);
+		}
+		console.log();
+
+		// 即使 estimatedResults 无效（NaN 或 0），也尝试解析结果
+		// 因为 API 响应可能包含有效数据，只是 estimatedResults 字段缺失或格式不对
+		try {
 			const { data, continuation } = SearchResultParser.parseInitialSearchResult(
 				response.data,
 				this.client
 			);
 			this.items.push(...(data as SearchResultItem<T>[]));
 			this.continuation = continuation;
+		} catch (parseError) {
+			// 如果解析失败，但 estimatedResults 有效，说明可能是响应格式问题
+			// 如果 estimatedResults 无效，可能是 API 响应格式变化
+			if (!isNaN(this.estimatedResults) && this.estimatedResults > 0) {
+				throw parseError;
+			}
 		}
 
 		return this;

@@ -53,7 +53,44 @@ export class VideoParser {
 				album: music.secondarySubtitle?.content || null,
 			};
 		}
-		// target.music =
+
+		// Extract comment count from engagement panels
+		const commentsPanel = data.response.engagementPanels?.find(
+			(panel: YoutubeRawData) =>
+				panel.engagementPanelSectionListRenderer?.panelIdentifier ===
+				"engagement-panel-comments-section"
+		);
+
+		if (commentsPanel?.engagementPanelSectionListRenderer?.header?.engagementPanelTitleHeaderRenderer?.contextualInfo?.runs) {
+			// 合并所有 runs 的文本，因为评论数可能被分割成多个 runs
+			// 例如在英文环境下 "1," 和 "712" 可能被分成两个 runs，只取第一个会得到 "1," 或 "17"
+			const runs = commentsPanel.engagementPanelSectionListRenderer.header.engagementPanelTitleHeaderRenderer.contextualInfo.runs;
+			const commentCountText = runs.map((run: YoutubeRawData) => run.text || '').join('');
+
+			// 解析评论数，支持格式如 "1,712"、"1.7K"、"1.2M" 等
+			let commentCount: number | null = null;
+
+			// 尝试匹配带单位的格式（如 "1.7K", "1.2M"）
+			const unitMatch = commentCountText.match(/([\d,.]+)\s*([KMkm])/i);
+			if (unitMatch) {
+				const num = parseFloat(unitMatch[1].replace(/,/g, ''));
+				const unit = unitMatch[2].toUpperCase();
+				if (unit === 'K') {
+					commentCount = Math.floor(num * 1000);
+				} else if (unit === 'M') {
+					commentCount = Math.floor(num * 1000000);
+				}
+			} else {
+				// 如果没有单位，移除所有非数字字符（保留逗号和点号用于解析）
+				const cleanedText = commentCountText.replace(/[^\d,.]/g, '').replace(/,/g, '');
+				const num = parseFloat(cleanedText);
+				commentCount = isNaN(num) ? null : Math.floor(num);
+			}
+
+			target.commentCount = commentCount;
+		} else {
+			target.commentCount = null;
+		}
 
 		return target;
 	}

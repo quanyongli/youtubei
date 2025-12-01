@@ -28,7 +28,7 @@
 		"dev": "tsc -w --noEmit",
 		"test": "vitest",
 		"test:coverage": "vitest run --coverage",
-		"build": "pnpm clean && pnpm build:cjs && pnpm build:esm && pnpm build:types",
+		"build": "npm run clean && npm run build:cjs && npm run build:esm && npm run build:types",
 		"build:cjs": "tsc -p ./typescript/tsconfig.cjs.json",
 		"build:esm": "tsc -p ./typescript/tsconfig.esm.json",
 		"build:types": "tsc -p ./typescript/tsconfig.types.json",

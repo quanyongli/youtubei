@@ -2,8 +2,21 @@
 	"extends": "./typescript/tsconfig.base.json",
 	"compilerOptions": {
 		"target": "ES2015",
-		"types": ["vitest/globals"],
-		"resolveJsonModule": true
+		"types": [
+			"vitest/globals"
+		],
+		"resolveJsonModule": true,
+		"typeRoots": [
+			"./node_modules/@types"
+		] // 新增：只查找当前目录的类型定义
 	},
-	"include": ["./tests", "./@types/*.d.ts", "./src/**/*.ts"]
+	"include": [
+		"./tests",
+		"./@types/*.d.ts",
+		"./src/**/*.ts"
+	],
+	"exclude": [
+		"../dist",
+		"../../node_modules"
+	]
 }

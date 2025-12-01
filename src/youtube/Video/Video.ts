@@ -15,6 +15,7 @@ interface VideoProperties extends BaseVideoProperties {
 	duration?: number;
 	comments?: VideoComments;
 	chapters?: Chapter[];
+	commentCount?: number | null;
 }
 
 export interface MusicMetadata {
@@ -34,6 +35,8 @@ export class Video extends BaseVideo implements VideoProperties {
 	comments: VideoComments;
 	/** Music metadata (if exists) */
 	music!: MusicMetadata | null;
+	/** The number of comments on this video, null if the count is hidden */
+	commentCount!: number | null;
 
 	/** @hidden */
 	constructor(attr: VideoProperties) {
@@ -41,6 +44,7 @@ export class Video extends BaseVideo implements VideoProperties {
 		Object.assign(this, attr);
 
 		this.comments = new VideoComments({ client: attr.client, video: this });
+		this.commentCount = attr.commentCount ?? null;
 	}
 
 	/**
