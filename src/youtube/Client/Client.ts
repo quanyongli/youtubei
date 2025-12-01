@@ -123,6 +123,17 @@ export class Client {
 		const playabilityStatus = data.playerResponse?.playabilityStatus;
 		const hasVideoDetails = !!data.playerResponse?.videoDetails?.videoId;
 
+		// 调试日志：帮助在服务器环境下分析 playability 状态和数据结构
+		console.log("[DEBUG getVideo] playabilityStatus:", JSON.stringify(playabilityStatus, null, 2));
+		console.log("[DEBUG getVideo] hasContents:", !!contents);
+		console.log("[DEBUG getVideo] hasVideoDetails:", hasVideoDetails);
+		if (!hasVideoDetails) {
+			console.log(
+				"[DEBUG getVideo] playerResponse keys:",
+				data.playerResponse ? Object.keys(data.playerResponse) : null
+			);
+		}
+
 		if (!contents || !playabilityStatus || playabilityStatus.status === "ERROR" || !hasVideoDetails) {
 			return undefined as T;
 		}

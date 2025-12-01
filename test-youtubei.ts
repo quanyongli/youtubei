@@ -363,6 +363,8 @@ async function testGetVideo() {
 
     // 代理配置：如果设置了环境变量则使用代理，否则直接连接（适用于服务器环境）
     const proxyUrl = process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
+    // OAuth 刷新令牌（可选）：用于在测试脚本中模拟服务端的 OAuth 行为
+    const oauthRefreshToken = process.env.YOUTUBE_OAUTH_REFRESH_TOKEN;
 
     let youtube: Client;
 
@@ -379,7 +381,13 @@ async function testGetVideo() {
             fetchOptions: {
                 agent: proxyAgent,
                 timeout: 30000,
-            }
+            },
+            oauth: oauthRefreshToken
+                ? {
+                    enabled: true,
+                    refreshToken: oauthRefreshToken,
+                }
+                : undefined,
         });
     } else {
         console.log("未配置 HTTP_PROXY/HTTPS_PROXY，直接连接 YouTube（无代理）");
@@ -390,9 +398,22 @@ async function testGetVideo() {
             youtubeClientOptions: { hl: "zh-CN", gl: "CN" },
             fetchOptions: {
                 timeout: 30000,
-            }
+            },
+            oauth: oauthRefreshToken
+                ? {
+                    enabled: true,
+                    refreshToken: oauthRefreshToken,
+                }
+                : undefined,
         });
     }
+
+    // 打印当前 OAuth 状态，方便在服务器上调试
+    console.log("[DEBUG] OAuth 当前状态:", {
+        token: youtube.oauth.token ? "[存在 accessToken]" : null,
+        expiresAt: youtube.oauth.expiresAt,
+        refreshToken: youtube.oauth.refreshToken ? "[存在 refreshToken]" : null,
+    });
 
     console.log("=".repeat(60));
     console.log("YouTube 视频数据获取测试");
