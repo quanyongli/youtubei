@@ -108,7 +108,10 @@ export class Client {
 	/** Get video information by video id or URL */
 	async getVideo<T extends Video | LiveVideo | undefined>(videoId: string): Promise<T> {
 		const nextPromise = this.http.post(`${I_END_POINT}/next`, { data: { videoId } });
-		const playerPromise = this.http.post(`${I_END_POINT}/player`, { data: { videoId } });
+		// 对 player 接口增加 contentCheckOk / racyCheckOk，以兼容部分地区 / 年龄验证视频
+		const playerPromise = this.http.post(`${I_END_POINT}/player`, {
+			data: { videoId, contentCheckOk: true, racyCheckOk: true },
+		});
 
 		const [nextResponse, playerResponse] = await Promise.all([nextPromise, playerPromise]);
 
